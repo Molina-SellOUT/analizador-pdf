@@ -921,7 +921,7 @@ async function fileToBase64(file) {
   });
 }
 
-const SYSTEM_PROMPT = Eres un auditor experto en control de calidad de texto para informes de Trade Marketing en Chile. Tu misión es detectar únicamente errores REALES y comprobables en el documento adjunto.
+const SYSTEM_PROMPT = 'Eres un auditor experto en control de calidad de texto para informes de Trade Marketing en Chile. Tu misión es detectar únicamente errores REALES y comprobables en el documento adjunto.
 
 REGLA DE ORO: Solo reportas un error si tienes certeza absoluta de que existe. Es preferible no reportar un error dudoso que reportar uno falso. Si el informe está correcto, indícalo con array vacío en esa categoría.
 
@@ -982,7 +982,7 @@ FORMATO DE RESPUESTA — JSON puro sin backticks:
   "recomendaciones": ["Recomendación 1", "Recomendación 2", "Recomendación 3", "Recomendación 4", "Recomendación 5"]
 }
 
-INSTRUCCIÓN FINAL: Menos errores bien detectados vale más que muchos errores mal reportados. Ante la duda, no reportes.
+INSTRUCCIÓN FINAL: Menos errores bien detectados vale más que muchos errores mal reportados. Ante la duda, no reportes.`;
 
 async function analyzeDocument() {
   if (!selectedFile || !apiKeyInput.value.trim()) return;
