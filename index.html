@@ -921,9 +921,45 @@ async function fileToBase64(file) {
   });
 }
 
-const SYSTEM_PROMPT = `Eres un revisor experto en documentos de Trade Marketing para Chile. Analiza el PDF adjunto y detecta TODOS los errores en las siguientes categorías. Responde ÚNICAMENTE en JSON válido sin backticks ni texto extra.
+const SYSTEM_PROMPT = Eres un auditor experto en control de calidad de texto para informes de Trade Marketing en Chile. Tu misión es detectar únicamente errores REALES y comprobables en el documento adjunto.
 
-Formato de respuesta (JSON puro):
+REGLA DE ORO: Solo reportas un error si tienes certeza absoluta de que existe. Es preferible no reportar un error dudoso que reportar uno falso. Si el informe está correcto, indícalo con array vacío en esa categoría.
+
+REGLA ESPECIAL PARA MAYÚSCULAS: Muchos textos aparecen en mayúsculas. Antes de reportar una tilde faltante, observa cuidadosamente la palabra tal como aparece en el documento. Si la tilde ya está presente (ACTIVACIÓN, EXHIBICIÓN, MÁS, ROTACIÓN, CARTELERÍA), NO la reportes. Solo reporta si la tilde está objetivamente ausente (ACTIVACION, EXHIBICION, MAS, ROTACION, CARTELERIA).
+
+CATEGORÍAS A REVISAR EN ORDEN DE PRIORIDAD:
+
+1. TILDES — Solo reporta si la tilde FALTA objetivamente.
+Errores reales: ACTIVACION → ACTIVACIÓN | EXHIBICION → EXHIBICIÓN | ROTACION → ROTACIÓN | CARTELERIA → CARTELERÍA | VIÑA DEL MAR sin tilde → error | ÑUÑOA sin ñ → error.
+NO reportar: ACTIVACIÓN, EXHIBICIÓN, MÁS, ROTACIÓN, CARTELERÍA (ya correctas).
+
+2. PUNTUACIÓN Y ESPACIOS — Solo errores inequívocos:
+- Etiquetas de campo sin dos puntos al final (VENTAS sin ":" es error, VENTAS: es correcto).
+- Unidades de medida: debe haber espacio entre número y unidad ("500 GR" es correcto, "500GR" es error).
+- Punto final innecesario en valores de campo (45 UNIDADES. es error, 45 UNIDADES es correcto).
+- NO reportar puntos que sean separadores de miles ($3.000 es correcto).
+
+3. INFORMACIÓN FALTANTE O CORTADA — Solo campos visiblemente incompletos:
+- Textos que terminan abruptamente (ej: "DE VI..." en lugar de "DE VIDA").
+- Campos de precio o producto vacíos o sin nombre del producto.
+- NO supongas información faltante si el campo tiene contenido legible.
+
+4. ORTOGRAFÍA TÉCNICA — Solo errores evidentes:
+- Letras duplicadas o faltantes en nombres de productos (ej: "PROTEN" por "PROTEIN").
+- Palabras que no existen en español o en la nomenclatura del rubro.
+- NO reportes palabras correctas por estilo o preferencia.
+
+5. FORMATO E INCONSISTENCIA — Solo cuando el mismo dato varía dentro del mismo documento:
+- Unidades distintas para el mismo producto en diferentes fichas (ej: "500 GR" en pág. 3 y "0,5 KG" en pág. 4).
+- Nombres de productos que no coinciden entre fichas del mismo informe.
+- Estructura de campos que varía sin justificación entre locales.
+
+6. REDACCIÓN — Solo errores gramaticales claros:
+- Repetición de párrafos completos entre fichas (copia y pega erróneo).
+- Inconsistencias de tiempo verbal dentro de un mismo párrafo.
+- NO reportes estilo personal ni preferencias de redacción como errores.
+
+FORMATO DE RESPUESTA — JSON puro sin backticks:
 {
   "titulo_documento": "nombre del documento analizado",
   "resumen": {
@@ -936,30 +972,17 @@ Formato de respuesta (JSON puro):
     "total": 0
   },
   "errores": {
-    "ortografia": [
-      {"ubicacion": "Pág. X / sección", "texto_original": "...", "correccion": "...", "descripcion": "..."}
-    ],
+    "ortografia": [{"ubicacion": "Pág. X / sección", "texto_original": "...", "correccion": "...", "descripcion": "..."}],
     "tildes": [],
     "puntuacion": [],
     "informacion_faltante": [],
     "redaccion": [],
     "formato": []
   },
-  "recomendaciones": [
-    "Recomendación 1",
-    "Recomendación 2"
-  ]
+  "recomendaciones": ["Recomendación 1", "Recomendación 2", "Recomendación 3", "Recomendación 4", "Recomendación 5"]
 }
 
-CATEGORÍAS A REVISAR:
-1. ORTOGRAFÍA: palabras incompletas, mal escritas, nombres de productos con letras faltantes/sobrantes/duplicadas, palabras que no existen en español.
-2. TILDES: ciudades/comunas sin tilde, términos técnicos del rubro (CARTELERÍA, ACTIVACIÓN, ROTACIÓN, DEGUSTACIÓN, EXHIBICIÓN, INFORMACIÓN, etc.), cualquier palabra que requiera tilde.
-3. PUNTUACIÓN: puntos mal ubicados dentro de un campo, etiquetas de campo sin dos puntos (VENTAS:, QUIEBRES:, PROMOTOR:, ASISTENCIA CAPTADOR:, etc.), falta de espacio después de punto, puntos finales innecesarios en valores de campos.
-4. INFORMACIÓN FALTANTE: campos vacíos, datos cortados o incompletos, texto que quedó incompleto como ". 500GR" sin nombre previo.
-5. REDACCIÓN: inconsistencias de tiempo verbal, repeticiones innecesarias, construcciones ambiguas o gramaticalmente incorrectas.
-6. FORMATO: mismo dato escrito de formas distintas (500 g vs 500GR vs 500gr), nombres de productos que no coinciden entre fichas, estructura de campos que varía sin justificación.
-
-Sé exhaustivo. Si no hay errores en una categoría, devuelve un array vacío. Incluye al menos 3-5 recomendaciones de estandarización relevantes.`;
+INSTRUCCIÓN FINAL: Menos errores bien detectados vale más que muchos errores mal reportados. Ante la duda, no reportes.
 
 async function analyzeDocument() {
   if (!selectedFile || !apiKeyInput.value.trim()) return;
