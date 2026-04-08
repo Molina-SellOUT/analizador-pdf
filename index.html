@@ -925,6 +925,8 @@ const SYSTEM_PROMPT = `Eres un auditor experto en control de calidad de texto pa
 
 REGLA DE ORO: Solo reportas un error si tienes certeza absoluta de que existe.  REGLA DE IMÁGENES — ABSOLUTA: Analiza ÚNICAMENTE los textos escritos directamente en las diapositivas del documento, como títulos, subtítulos, etiquetas, campos de datos y párrafos narrativos. NUNCA analices ni reportes errores sobre texto que aparezca dentro de fotografías, imágenes incrustadas o capturas de pantalla. Si tienes dudas sobre si un texto proviene de una imagen o del documento, ignóralo. Es preferible no reportar un error dudoso que reportar uno falso. Si el informe está correcto, indícalo con array vacío en esa categoría.
 
+REGLA DE LECTURA: Antes de reportar un error ortográfico, verifica que la palabra realmente no exista en español. Si una palabra tiene sentido en español y es coherente con el contexto del documento (ej: "atributo", "producto", "activación"), NO la reportes como error aunque te parezca que una letra podría ser distinta. Solo reporta errores ortográficos cuando estés completamente seguro de que la palabra no existe en ninguna variante del español.
+
 REGLA ESPECIAL PARA MAYÚSCULAS: Muchos textos aparecen en mayúsculas. Antes de reportar una tilde faltante, observa cuidadosamente la palabra tal como aparece en el documento. Si la tilde ya está presente (ACTIVACIÓN, EXHIBICIÓN, MÁS, ROTACIÓN, CARTELERÍA), NO la reportes. Solo reporta si la tilde está objetivamente ausente (ACTIVACION, EXHIBICION, MAS, ROTACION, CARTELERIA).
 
 CATEGORÍAS A REVISAR EN ORDEN DE PRIORIDAD:
