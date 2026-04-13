@@ -1062,46 +1062,6 @@ async function analyzeDocument() {
     showError('Error: ' + err.message);
   }
 }
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{
-          parts: [
-            { inline_data: { mime_type: 'application/pdf', data: base64 } },
-            { text: 'Analiza este documento PDF y devuelve el JSON con todos los errores encontrados según las categorías indicadas.' }
-          ]
-        }]
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || `Error ${response.status}`);
-    }
-
-    document.getElementById('loading-text').textContent = 'Generando informe...';
-
-    const data = await response.json();
-    const rawText = data.candidates[0].content.parts.map(b => b.text || '').join('');
-    const clean = rawText.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-
-    currentReportData = parsed;
-    renderReport(parsed);
-    hideLoading();
-
-    document.getElementById('screen-upload').style.display = 'none';
-    document.getElementById('screen-report').classList.add('visible');
-
-  } catch (err) {
-    hideLoading();
-    console.error(err);
-    showError('Error: ' + err.message);
-  }
-}
 
 const CAT_CONFIG = {
   ortografia:           { label: 'Ortografía',          cls: 'ortografia',  color: '#f0b429' },
